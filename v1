@@ -1,0 +1,35 @@
+from google import genai
+
+client = genai.Client(api_key="AIzaSyAEEDFk-NhkE85lSGqxY3LapT4YyX7waug")
+
+
+tasks = [
+    {"subject": "Biology", "chapter": "Genetics", "difficulty": 4, "completed": False, "last_studied": "3 days ago"},
+    {"subject": "Math", "chapter": "Trigonometry", "difficulty": 2, "completed": False, "last_studied": "today"},
+    {"subject": "Physics", "chapter": "Light", "difficulty": 5, "completed": True, "last_studied": "yesterday"}
+]
+
+prompt = "task:\n"
+for t in tasks:
+    if t["completed"]:
+        status = "Completed"
+    else:
+        status = "Not Completed"
+    line = t["subject"] + " - " + t["chapter"] + " - Difficulty " + str(t["difficulty"]) + " - " + status + " - Last studied: " + t["last_studied"]
+    prompt = prompt + line + "\n"
+prompt = "You are a study planner.\nChoose the best next task.\n\n" + prompt
+prompt += "Choose the best next task.\n"
+prompt += "DO NOT ADD OWN TASK AND ONLY CHOOSE FROM THE TASK GIVEN"
+prompt += "You MUST NOT choose any task that is completed.\n"
+prompt += "If a task is completed, ignore it completely.\n"
+prompt += "Only consider tasks that are NOT completed.\n"
+prompt += "Among remaining tasks:\n"
+prompt += "- Higher difficulty = higher priority\n"
+prompt += "- More days since last studied = higher priority\n\n" + prompt
+prompt = prompt + "\nReturn ONLY:\nTask: <task>\nReason: <short reason>"
+response = client.models.generate_content(
+    model="gemini-2.5-flash-lite",
+    contents=prompt,
+)
+
+print(response.text)
