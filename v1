@@ -1,6 +1,6 @@
 from google import genai
 
-client = genai.Client(api_key="AIzaSyAEEDFk-NhkE85lSGqxY3LapT4YyX7waug")
+client = genai.Client(api_key="mykey")
 
 
 tasks = [
