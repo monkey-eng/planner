@@ -1,0 +1,99 @@
+from google import genai
+import json
+
+client = genai.Client(api_key="AIzaSyAAKPqcWlgpKCnrnMR90Lf2RHjdmV2Qcuc")
+
+try: 
+    with open("tasks.json", "r") as f:
+        tasks = json.load(f)
+        prompt = "task:\n"
+        for t in tasks:
+            if t["completed"] == "yes":
+                 status = "Completed"
+            else:
+                status = "Not Completed"
+            line = t["subject"] + " - " + t["chapter"] + " - Difficulty " + str(t["difficulty"]) + " - " + status + " - Last studied: " + t["last_studied"]
+            prompt = prompt + line + "\n"
+
+        prompt = "You are the world’s most accurate study planner..\nChoose the best next task.\n\n"+prompt
+        prompt += "You decide the best next task by using the following rules:\n"
+        prompt += "1. Hierarchy of picking a task is: - 1. Difficulty 2. last_studied_days\n"
+        prompt += "2.	Completely ignore the completed tasks. In case of all task’s completion follow rule (1).\n"
+        prompt += "3.	In case of same difficulty and same last_studied_days, the first task should be chosen.\n"
+        prompt += "4.	When only one task is given, choose it.\n"
+        prompt += "6.	Difficulty in cases except the exception rules over last_studied_days. Exception rule is rule number 5.\n"
+        prompt = prompt + "\nReturn ONLY:\nTask: <task>\nReason: <short reason on why you chose the task INCLUDING last studied days (for example,'Reason: It has the highest difficulty (5). Among tasks with this difficulty, it has the highest last_studied_days (20), so it is selected.')>"
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=prompt,
+        )
+        print(response.text)
+except FileNotFoundError:
+    tasks = []
+    q = ""
+    while q != "done":
+        print("Enter Subject:")
+        subject = input()
+
+        if subject == "done":
+            break
+
+        print("Enter Chapter:")
+        chapter = input()
+
+        print("Enter Difficulty:")
+        difficulty = input()
+
+        print("Completed? (yes/no):")
+        completed = input()
+
+        print("Last Studied: (give answer in format like '3 days ago' or 'today(0)' or 'yesterday(1)')")
+        last_studied = input()
+
+        task = {
+        "subject": subject,
+        "chapter": chapter,
+        "difficulty": difficulty,
+        "completed": completed,
+        "last_studied": last_studied
+     }
+
+        tasks.append(task)
+        print("Type 'done' to stop or press Enter to continue:")
+        q = input()
+
+    prompt = "task:\n"
+    for t in tasks:
+        if t["completed"] == "yes":
+            status = "Completed"
+        else:
+            status = "Not Completed"
+        line = t["subject"] + " - " + t["chapter"] + " - Difficulty " + str(t["difficulty"]) + " - " + status + " - Last studied: " + t["last_studied"]
+
+        prompt = prompt + line + "\n"
+    
+
+
+    
+        prompt = "You are the world’s most accurate study planner..\nChoose the best next task.\n\n"+prompt
+        prompt += "You decide the best next task by using the following rules:\n"
+        prompt += "1. Hierarchy of picking a task is: - 1. Difficulty 2. last_studied_days\n"
+        prompt += "2.	Completely ignore the completed tasks. In case of all task’s completion follow rule (1).\n"
+        prompt += "3.	In case of same difficulty and same last_studied_days, the first task should be chosen.\n"
+        prompt += "4.	When only one task is given, choose it.\n"
+        prompt += "5.	Difficulty in cases except the exception rules over last_studied_days. Exception rule is rule number 5.\n"
+        prompt = prompt + "\nReturn ONLY:\nTask: <task>\nReason: <short reason on why you chose the task INCLUDING last studied days (for example,'Reason: It has the highest difficulty (5). Among tasks with this difficulty, it has the highest last_studied_days (20), so it is selected.')>"
+    response = client.models.generate_content(
+    model="gemini-2.5-flash-lite",
+    contents=prompt,
+    )
+
+    print(response.text)
+    with open("tasks.json", "w") as f:
+        json.dump(tasks, f)
+
+
+
+
+
+
