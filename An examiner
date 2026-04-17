@@ -1,0 +1,38 @@
+from google import genai
+import json
+import re
+client = genai.Client(api_key="MY_KEY")
+image_path = "book.png"
+my_file = client.files.upload(file=image_path)
+prompt = {
+    "role": "examiner",
+    "content": """"1.	Give 5 questions form the image given
+                2.	Give the questions in varying difficulty 
+                3.	Only give the keywords of each question at the last, starting with “answers:“"""
+
+}
+response = client.models.generate_content(
+    model="gemini-3-flash-preview",
+    contents=[my_file, prompt]
+)
+to_pass = response.text[0:response.text.find('answers: ')]
+answer = response.text[response.text.find('answers: '):]
+print(to_pass)
+
+with open("image_ques.json", "w") as f:
+    json.dump(response.text,f)
+
+q1 = input("Enter the answer for question 1: ")
+q2 = input("Enter the answer for question 2: ")
+q3 = input("Enter the answer for question 3: ") 
+q4 = input("Enter the answer for question 4: ")
+q5 = input("Enter the answer for question 5: ")
+answer = " "+answer.lower()
+ans = []
+ans = re.findall(r'\w+', answer)
+q1_ans = re.findall(r'\w+', q1.lower())
+q2_ans = re.findall(r'\w+', q2.lower())
+q3_ans = re.findall(r'\w+', q3.lower())
+q4_ans = re.findall(r'\w+', q4.lower())
+q5_ans = re.findall(r'\w+', q5.lower())
+
